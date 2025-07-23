@@ -23,4 +23,9 @@ pub mod multisig {
     pub fn propose_txn(ctx: Context<ProposeTxn>, instruction: Vec<InstructionData>) -> Result<()> {
         propose_txn_handler(ctx, instruction)
     }
+
+    // Approve a transaction
+    pub fn approve_txn(ctx: Context<ApproveTxn>) -> Result<()> {
+        approve_txn_handler(ctx)
+    }
 }

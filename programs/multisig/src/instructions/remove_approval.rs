@@ -11,6 +11,7 @@ pub struct RemoveApproval<'info> {
     pub remover: Signer<'info>,
     #[account(mut,
         constraint = transaction.multisig == multisig.key(),
+        constraint = transaction.executed == false,
     )]
     pub transaction: Account<'info, Transaction>,
     pub system_program: Program<'info, System>,
