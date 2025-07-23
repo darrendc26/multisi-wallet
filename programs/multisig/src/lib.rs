@@ -2,17 +2,19 @@
 #![allow(unexpected_cfgs)]
 use anchor_lang::prelude::*;
 
+pub mod state;
+pub mod errors;
+pub mod instructions;
+
+use instructions::*;
+
 declare_id!("GLtnCFBPrFgisKinYNw5sW9s3VHM5J8KvtBncQfUWjY6");
 
 #[program]
 pub mod multisig {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
-        Ok(())
+    pub fn create_multisig(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>, threshold: u64) -> Result<()> {
+        create_multisig_account::create_multisig_handler(ctx, owners, threshold)
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
