@@ -14,4 +14,8 @@ pub enum ErrorCode {
     EmptyInstructions,
     #[msg("Invalid number of instructions")]
     InvalidNumberOfInstructions,
+    #[msg("Transaction executed")]
+    TransactionExecuted,
+    #[msg("Already signed")]
+    AlreadySigned,
 }
