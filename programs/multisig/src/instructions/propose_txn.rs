@@ -22,6 +22,7 @@ pub struct ProposeTxn<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// Handles the creation of a transaction
 pub fn propose_txn_handler(ctx: Context<ProposeTxn>, instruction: Vec<InstructionData>) -> Result<()> {
     let multisig = &mut ctx.accounts.multisig;
     let transaction = &mut ctx.accounts.transaction;
@@ -30,16 +31,18 @@ pub fn propose_txn_handler(ctx: Context<ProposeTxn>, instruction: Vec<Instructio
     require!(instruction.len() <= 5, ErrorCode::InvalidNumberOfInstructions);
     require!(!instruction.is_empty(), ErrorCode::EmptyInstructions);
 
-
+    // Create the transaction account
     transaction.multisig = multisig.key();
     transaction.proposer = proposer;
     transaction.instructions = instruction;
+
+    // Proposer auto approves the transaction
     transaction.signers = vec![proposer];
     transaction.executed = false;
-    transaction.nonce = multisig.nonce;
     transaction.bump = ctx.bumps.transaction;
     
     multisig.nonce += 1;
+    transaction.nonce = multisig.nonce;
 
     Ok(())
 }
