@@ -18,4 +18,10 @@ pub enum ErrorCode {
     TransactionExecuted,
     #[msg("Already signed")]
     AlreadySigned,
+    #[msg("Not enough signers")]
+    NotEnoughSigners,
+    #[msg("Missing account")]
+    MissingAccount,
+    #[msg("Not signed")]
+    NotSigned,
 }

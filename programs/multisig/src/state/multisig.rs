@@ -7,7 +7,8 @@ use anchor_lang::prelude::*;
 pub struct Multisig {
     #[max_len(32 * 5)]
     pub owners: Vec<Pubkey>,
-    pub threshold: u64,
+    pub creator: Pubkey,
+    pub threshold: u8,
     pub nonce: u16,
     pub bump: u8,
 }

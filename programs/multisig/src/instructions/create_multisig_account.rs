@@ -19,9 +19,9 @@ pub struct CreateMultisig<'info> {
 }
 
 // handle the creation of a multisig account
-pub fn create_multisig_handler(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>, threshold: u64) -> Result<()> {
+pub fn create_multisig_handler(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>, threshold: u8) -> Result<()> {
     require!(owners.len() <= 5, ErrorCode::InvalidNumberOfOwners);
-    require!(threshold <= owners.len() as u64, ErrorCode::InvalidThreshold);
+    require!(threshold <= owners.len() as u8, ErrorCode::InvalidThreshold);
     require!(threshold > 0, ErrorCode::InvalidThreshold);
 
     // Check for duplicate owners
@@ -32,6 +32,7 @@ pub fn create_multisig_handler(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>
 
     // Create the multisig account
     let multisig = &mut ctx.accounts.multisig;
+    multisig.creator = ctx.accounts.owner.key();
     multisig.owners = owners;
     multisig.threshold = threshold;
     multisig.nonce = 0;

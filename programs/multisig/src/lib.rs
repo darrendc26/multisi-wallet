@@ -15,7 +15,7 @@ pub mod multisig {
     use super::*;
 
     // Create a multisig account
-    pub fn create_multisig(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>, threshold: u64) -> Result<()> {
+    pub fn create_multisig(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>, threshold: u8) -> Result<()> {
         create_multisig_account::create_multisig_handler(ctx, owners, threshold)
     }
 
