@@ -28,4 +28,12 @@ pub mod multisig {
     pub fn approve_txn(ctx: Context<ApproveTxn>) -> Result<()> {
         approve_txn_handler(ctx)
     }
+
+    pub fn remove_approval(ctx: Context<RemoveApproval>) -> Result<()> {
+        remove_approval_handler(ctx)
+    }
+
+    pub fn execute_txn(ctx: Context<ExecuteTxn>) -> Result<()> {
+        execute_txn_handler(ctx)
+    }
 }
