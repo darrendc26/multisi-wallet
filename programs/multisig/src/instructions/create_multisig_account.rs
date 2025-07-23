@@ -29,6 +29,7 @@ pub fn create_multisig_handler(ctx: Context<CreateMultisig>, owners: Vec<Pubkey>
     let multisig = &mut ctx.accounts.multisig;
     multisig.owners = owners;
     multisig.threshold = threshold;
+    multisig.nonce = 0;
     multisig.bump = ctx.bumps.multisig;
 
     Ok(())

@@ -6,10 +6,11 @@ pub struct Transaction {
     pub multisig: Pubkey,
     pub proposer: Pubkey,
     #[max_len(5)]
-    pub instruction: Vec<InstructionData>,
+    pub instructions: Vec<InstructionData>,
     #[max_len(5)]
     pub signers: Vec<Pubkey>,
     pub executed: bool,
+    pub nonce: u16,
     pub bump: u8,
 }
 

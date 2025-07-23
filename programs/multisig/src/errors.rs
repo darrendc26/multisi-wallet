@@ -8,4 +8,10 @@ pub enum ErrorCode {
     InvalidThreshold,
     #[msg("Duplicate owners")]
     DuplicateOwners,
+    #[msg("Unauthorized")]
+    Unauthorized,
+    #[msg("Empty instructions")]
+    EmptyInstructions,
+    #[msg("Invalid number of instructions")]
+    InvalidNumberOfInstructions,
 }
