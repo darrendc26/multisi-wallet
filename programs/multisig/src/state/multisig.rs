@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct Multisig {
-    #[max_len(32 * 5)]
+    #[max_len(5)]
     pub owners: Vec<Pubkey>,
     pub creator: Pubkey,
     pub threshold: u8,
