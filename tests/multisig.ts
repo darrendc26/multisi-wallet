@@ -25,9 +25,9 @@ owners = [
   owner3Keypair.publicKey,
   owner4Keypair.publicKey
 ];
+  const connection = anchor.getProvider().connection;
 
 before(async () => {
-  const connection = anchor.getProvider().connection;
   const airdropSignature = await connection.requestAirdrop(
     creatorKeypair.publicKey,
     anchor.web3.LAMPORTS_PER_SOL // 1 SOL
@@ -37,7 +37,7 @@ before(async () => {
     blockhash: (await connection.getLatestBlockhash()).blockhash,
     lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
   });
-  console.log("", creatorKeypair.publicKey.toString());
+  // console.log("", creatorKeypair.publicKey.toString());
 
   const airdropSignature2 = await connection.requestAirdrop(
     owner1Keypair.publicKey,
@@ -49,10 +49,22 @@ before(async () => {
     lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
   });
 
-  console.log("Owner 1 airdropped:", owner1Keypair.publicKey.toString());
+  // console.log("Owner 1 airdropped:", owner3Keypair.publicKey.toString())
+
+const airdropSignature3 = await connection.requestAirdrop(
+    owner3Keypair.publicKey,
+    anchor.web3.LAMPORTS_PER_SOL // 1 SOL
+  );
+  await connection.confirmTransaction({
+    signature: airdropSignature3,
+    blockhash: (await connection.getLatestBlockhash()).blockhash,
+    lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+  });
+
+  // console.log("Owner 3 airdropped:", owner3Keypair.publicKey.toString())
 });
 
-describe("multisig", () => {
+describe("multi-sig program", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.multisig as Program<Multisig>;
 
@@ -83,7 +95,7 @@ describe("multisig", () => {
       assert.equal(multisigAccountData.bump, bump); // Should equal the PDA bump
 
       multisig = multisigAccount;
-      console.log("Multisig created successfully:", multisig.toString());
+      // console.log("Multisig created successfully:", multisig.toString());
 
     } catch (err) {
       console.error("Error details:", err);
@@ -102,18 +114,29 @@ describe("multisig", () => {
     );
 
     const instruction = [
+  {
+    programId: anchor.web3.SystemProgram.programId,
+    accounts: [
       {
-        programId: PublicKey.default,
-        accounts: [
-          {
-            pubkey: PublicKey.default,
-            isSigner: true,
-            isWritable: true,
-          },
-        ],
-        data: Buffer.from("test"),
+        pubkey: creatorKeypair.publicKey,    // From: creator
+        isSigner: true,                      // Multisig PDA will sign
+        isWritable: true,                    // Balance will decrease
       },
-    ];
+      {
+        pubkey: owner2Keypair.publicKey,    // To: recipient
+        isSigner: false,
+        isWritable: true,                    // Balance will increase
+      },
+    ],
+    data: Buffer.from([
+  2, 0, 0, 0,                           // System program transfer instruction discriminator
+  0, 101, 205, 29, 0, 0, 0, 0,         // Amount: 0.5 SOL (500,000,000 lamports in little-endian)
+]),
+  }
+];
+
+    
+    transaction = transactionAccount;
 
     try {
       await program.methods.proposeTxn(instruction)
@@ -131,14 +154,143 @@ describe("multisig", () => {
       assert.equal(transactionAccountData.proposer.toString(), owner1Keypair.publicKey.toString());
       assert.equal(transactionAccountData.signers.length, 1);
       assert.equal(transactionAccountData.signers[0].toString(), owner1Keypair.publicKey.toString());
-      console.log("Transaction created successfully:", transactionAccount.toString());
-      console.log("Txn signers:  ", transactionAccountData.signers);
+      // console.log("Transaction created successfully:", transactionAccount.toString());
+      // console.log("Txn signers:  ", transactionAccountData.signers);
     } catch (err) {
       console.error("Error details:", err);
     }
   });
 
+  it("Approves a transaction for owner 1", async () => {
+
+    const multisigData = await program.account.multisig.fetch(multisig);
+    const transactionData = await program.account.transaction.fetch(transaction);
+    try {
+      await program.methods.approveTxn()
+      .accounts({
+        multisig: multisig,
+        approver: creatorKeypair.publicKey,
+        transaction: transaction,
+      })
+      .signers([creatorKeypair])
+      .rpc(); 
+  } catch (err) {
+    console.error("Error details:", err);
+  }
+  let transactionAccountData = await program.account.transaction.fetch(transaction);
+  // assert.equal(transactionAccountData.signers.length, 2);
+  assert.equal(transactionAccountData.signers[0].toString(), owner1Keypair.publicKey.toString());
+  assert.equal(transactionAccountData.signers[1].toString(), creatorKeypair.publicKey.toString());
 });
 
+it("Approves a transaction for owner 3", async () => {
+
+    const multisigData = await program.account.multisig.fetch(multisig);
+    const transactionData = await program.account.transaction.fetch(transaction);
+    try {
+      await program.methods.approveTxn()
+      .accounts({
+        multisig: multisig,
+        approver: owner3Keypair.publicKey,
+        transaction: transaction,
+      })
+      .signers([owner3Keypair])
+      .rpc(); 
+  } catch (err) {
+    console.error("Error details:", err);
+  }
+  let transactionAccountData = await program.account.transaction.fetch(transaction);
+  // assert.equal(transactionAccountData.signers.length, 2);
+  assert.equal(transactionAccountData.signers[0].toString(), owner1Keypair.publicKey.toString());
+  assert.equal(transactionAccountData.signers[1].toString(), creatorKeypair.publicKey.toString());
+  assert.equal(transactionAccountData.signers[2].toString(), owner3Keypair.publicKey.toString());
+});
+
+it("Removes an approval for owner 3", async () => {
+  const multisigData = await program.account.multisig.fetch(multisig);
+  const transactionData = await program.account.transaction.fetch(transaction);
+  try {
+    await program.methods.removeApproval()
+    .accounts({
+      multisig: multisig,
+      remover: owner3Keypair.publicKey,
+      transaction: transaction,
+    })
+    .signers([owner3Keypair])
+    .rpc(); 
+} catch (err) {
+  console.error("Error details:", err);
+}
+let transactionAccountData = await program.account.transaction.fetch(transaction);
+assert.equal(transactionAccountData.signers.length, 2);
+});
+
+it("Executes a transaction", async () => {
+  const multisigData = await program.account.multisig.fetch(multisig);
+  const transactionData = await program.account.transaction.fetch(transaction);
+  const seeds = [
+    Buffer.from("multisig"),
+    multisigData.creator.toBuffer(),
+    Buffer.from([multisigData.bump]),
+  ];
+
+  const remainingAccounts = [
+    {
+      pubkey: creatorKeypair.publicKey,     // From account
+      isSigner: false,                     // PDA handles signing
+      isWritable: true,
+    },
+    {
+      pubkey: owner2Keypair.publicKey,     // To account  
+      isSigner: false,
+      isWritable: true,
+    },
+  ];
+
+  const creatorBalanceBefore = await connection.getBalance(creatorKeypair.publicKey);
+const recipientBalanceBefore = await connection.getBalance(owner2Keypair.publicKey);
+
+    const fundSignature = await connection.requestAirdrop(creatorKeypair.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL);
+    await connection.confirmTransaction({
+      signature: fundSignature,
+      blockhash: (await connection.getLatestBlockhash()).blockhash,
+      lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+    });
+
+
+
+// console.log("Balances before:");
+// console.log(`creator: ${creatorBalanceBefore / anchor.web3.LAMPORTS_PER_SOL} SOL`);
+// console.log(`Recipient: ${recipientBalanceBefore / anchor.web3.LAMPORTS_PER_SOL} SOL`);
+
+
+  try {
+   await program.methods.executeTxn()
+    .accounts({
+      multisig: multisig,
+      transaction: transaction,
+      executor: creatorKeypair.publicKey,
+    })
+    .remainingAccounts(remainingAccounts)
+    .signers([creatorKeypair])
+    .rpc();
+
+     const creatorBalanceAfter = await connection.getBalance(multisig);
+  const recipientBalanceAfter = await connection.getBalance(owner2Keypair.publicKey);
+  
+  // console.log("Balances after:");
+  // console.log(`Creator: ${creatorBalanceAfter / anchor.web3.LAMPORTS_PER_SOL} SOL`);
+  // console.log(`Recipient: ${recipientBalanceAfter / anchor.web3.LAMPORTS_PER_SOL} SOL`);
+
+  }catch (err) {
+    console.error("Error details:", err);
+  }
+
+  let transactionAccountData = await program.account.transaction.fetch(transaction);
+  assert.equal(transactionAccountData.executed, true);
+
+});
+
+});
 
 

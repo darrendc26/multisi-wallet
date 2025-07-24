@@ -14,6 +14,7 @@ pub struct ExecuteTxn<'info> {
         constraint = transaction.executed == false,
     )]
     pub transaction: Account<'info, Transaction>,
+    pub executor: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
