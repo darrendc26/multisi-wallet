@@ -123,15 +123,15 @@ State validation: Comprehensive constraint checks
 Duplicate prevention: Owners cannot approve twice
 
 ## Error Codes
-6000	InvalidNumberOfOwners	
-6001	InvalidThreshold	
-6002	DuplicateOwners	
-6003	Unauthorized	
-6004	EmptyInstructions	
-6005	InvalidNumberOfInstructions	
-6006	TransactionExecuted	
-6007	AlreadySigned	
-6008	NotEnoughSigners	
-6009	MissingAccount	
-6010	NotSigned	
+- 6000	InvalidNumberOfOwners	
+- 6001	InvalidThreshold	
+- 6002	DuplicateOwners	
+- 6003	Unauthorized	
+- 6004	EmptyInstructions	
+- 6005	InvalidNumberOfInstructions	
+- 6006	TransactionExecuted	
+- 6007	AlreadySigned	
+- 6008	NotEnoughSigners	
+- 6009	MissingAccount	
+- 6010	NotSigned	
 
