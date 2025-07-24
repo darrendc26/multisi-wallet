@@ -36,8 +36,8 @@ Node.js 16+
 ## Clone and Build
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd multisig
+git clone https://github.com/darrendc26/multisig-wallet
+cd multisig-wallet
 
 # Install dependencies
 npm install
